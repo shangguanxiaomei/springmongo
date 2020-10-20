@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 public class Person {
     @Id
     private Long id;
