@@ -1,6 +1,6 @@
-### Springmongo
+### Springmongo practice project
 
-### Skillset: web, rest, mongodb, gridfs, lombok, test
+### Skillset: web, rest, mongodb, gridfs, lombok, test.
 
 ### Endpoint:
 
