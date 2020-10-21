@@ -32,6 +32,7 @@
                             var xmlHttp = new XMLHttpRequest();
                             xmlHttp.open( "DELETE", "files/"+name, false );
                             xmlHttp.send( null );
+                            location.reload()
                         };
                         li.appendChild(oButNode);
 

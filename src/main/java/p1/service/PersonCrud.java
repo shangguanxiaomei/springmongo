@@ -56,6 +56,10 @@ public class PersonCrud {
 
         personToUpdate.setDeveloper(person.isDeveloper());
 
+        if (person.getAddress() != null) {
+            personToUpdate.setAddress(person.getAddress());
+        }
+
         return personRepository.save(personToUpdate);
     }
 

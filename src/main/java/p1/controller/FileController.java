@@ -5,16 +5,12 @@ import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
-import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
-//import com.mongodb.gridfs.GridFSDBFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
-import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
-import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +20,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,8 +35,6 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @RequestMapping("/files")
 public class FileController {
 
-//    @Resource
-//    private GridFSBucket gridFSBucket;
     private final GridFsTemplate gridFsTemplate;
     private final MongoDatabaseFactory mongoDatabaseFactory;
 
@@ -70,7 +63,8 @@ public class FileController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public @ResponseBody List<String> list() {
+    @ResponseBody
+    public List<String> list() {
         return getFiles().stream()
                 .map(GridFSFile::getFilename)
                 .collect(Collectors.toList());
@@ -106,9 +100,9 @@ public class FileController {
     private List<GridFSFile> getFiles() {
         GridFSFindIterable iterable = gridFsTemplate.find(new Query());
         List<GridFSFile> results = new ArrayList<>();
-        MongoCursor mongoCursor= iterable.iterator();
+        MongoCursor<GridFSFile> mongoCursor= iterable.iterator();
         while(mongoCursor.hasNext()){
-            results.add((GridFSFile) mongoCursor.next());
+            results.add(mongoCursor.next());
         }
         return results;
     }
