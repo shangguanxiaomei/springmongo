@@ -1,5 +1,4 @@
 package p1.entity;
-
 import lombok.*;
 
 @NoArgsConstructor
@@ -7,7 +6,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+//@EqualsAndHashCode
 public class Address {
     String houseNumber;
     String street;

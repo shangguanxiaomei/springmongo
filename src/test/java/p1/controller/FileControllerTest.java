@@ -1,8 +1,7 @@
 package p1.controller;
 
 import com.mongodb.*;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoIterable;
+import com.mongodb.client.*;
 import com.mongodb.client.gridfs.GridFSFindIterable;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.model.Collation;
@@ -16,12 +15,15 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsCriteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 public class FileControllerTest {
 
@@ -36,10 +38,11 @@ public class FileControllerTest {
         mongoDatabaseFactory = Mockito.mock(MongoDatabaseFactory.class);
         fileController = new FileController(gridFsTemplate, mongoDatabaseFactory);
         BsonString id =  new BsonString("5f90697fa049ff6907524924");
-        Document metaData =  new Document("contentType", "image/jpeg");
-        GridFSFile file = new GridFSFile(id, "firstFile", 1l, 1, new Date(), metaData);
+        Document metaData =  new Document("contentType", "text/plain");
+        GridFSFile file = new GridFSFile(id, "test.txt", 1l, 1, new Date(), metaData);
         BsonString id2 =  new BsonString("5f906a30a2515a6fd0a2e0a6");
-        GridFSFile file2 = new GridFSFile(id2, "secondFile", 2l, 2, new Date(), metaData);
+        Document metaData2 =  new Document("contentType", "image/jpeg");
+        GridFSFile file2 = new GridFSFile(id2, "test.jpg", 2l, 2, new Date(), metaData2);
         gridFSFile = Arrays.asList(file, file2);
     }
 
@@ -96,7 +99,7 @@ public class FileControllerTest {
 
         //act
         List<String> response = fileController.list();
-        List<String> expected = Arrays.asList("firstFile", "secondFile");
+        List<String> expected = Arrays.asList("test.txt", "test.jpg");
 
         //assert
         Mockito.verify(gridFsTemplate).find(new Query());
@@ -104,7 +107,7 @@ public class FileControllerTest {
     }
 
     @Test
-    public void createOrUpdate_ShouldCreated() throws IOException {
+    public void createOrUpdate_ShouldCreated_WhenFileNotExist() throws IOException {
         //arrange
         File file = null;
         try {
@@ -139,7 +142,7 @@ public class FileControllerTest {
     }
 
     @Test
-    public void createOrUpdate_ShouldDeleteAndCreated() throws IOException {
+    public void createOrUpdate_ShouldDeleteAndCreated_WhenFileExist() throws IOException {
         //arrange
         File file = null;
         try {
@@ -172,6 +175,49 @@ public class FileControllerTest {
 //                ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.any(org.bson.Document.class));
         assertEquals(new HttpEntity<>("<script>window.location = '/';</script>".getBytes()), response);
 
+    }
+
+
+
+    @Test
+    public void get_ShouldReturnNotFind_WhenFileNotExist() {
+        //arrange
+        Mockito.when(gridFsTemplate.findOne(Query.query(GridFsCriteria.whereFilename().is("test.txt")))).thenReturn(null);
+
+        //act
+        HttpEntity response = fileController.get("test.txt");
+        ResponseEntity expect = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        //assert
+        assertEquals(expect, response);
+    }
+
+    @Test
+    public void delete_ShouldReturnNotFind_WhenFileNotExist() {
+        //arrange
+        Mockito.when(gridFsTemplate.findOne(Query.query(GridFsCriteria.whereFilename().is("test.txt")))).thenReturn(null);
+
+
+        //act
+        HttpEntity<byte[]> response = fileController.delete("test.txt");
+        ResponseEntity expect = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        //assert
+        assertEquals(expect, response);
+    }
+
+    @Test
+    public void delete_ShouldReturnNoContent_WhenFileExist() {
+        //arrange
+        Mockito.when(gridFsTemplate.findOne(Query.query(GridFsCriteria.whereFilename().is("test.txt")))).thenReturn(gridFSFile.get(0));
+
+
+        //act
+        HttpEntity<byte[]> response = fileController.delete("test.txt");
+        ResponseEntity expect = new ResponseEntity<>(null, NO_CONTENT);
+
+        //assert
+        assertEquals(expect, response);
     }
 
 }

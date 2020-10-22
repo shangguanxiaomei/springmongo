@@ -1,16 +1,13 @@
 package p1.entity;
-
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
-
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-@EqualsAndHashCode
+//@EqualsAndHashCode
 public class Person {
     @Id
     private Long id;

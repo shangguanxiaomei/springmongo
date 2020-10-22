@@ -73,8 +73,8 @@ class SpringmongoApplicationTests {
         Boolean p2Exist = false;
 
         for (Person temp : list) {
-            if(temp.equals(p1)) p1Exist = true;
-            if(temp.equals(p2)) p2Exist = true;
+            if(temp.toString().equals(p1.toString())) p1Exist = true;
+            if(temp.toString().equals(p2.toString())) p2Exist = true;
         }
 
         Boolean actual= p1Exist & p2Exist;
@@ -87,23 +87,23 @@ class SpringmongoApplicationTests {
         MockHttpServletResponse response = mockMvc.perform(get("/person/100"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        Person expected = p1;
-        Person actual = mapper.readValue(response.getContentAsString(), Person.class);
+        String expected = p1.toString();
+        String actual = mapper.readValue(response.getContentAsString(), Person.class).toString();
         assertEquals(expected, actual);
 
 
         response = mockMvc.perform(get("/person/200"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        expected = p2;
-        actual = mapper.readValue(response.getContentAsString(), Person.class);
+        expected = p2.toString();
+        actual = mapper.readValue(response.getContentAsString(), Person.class).toString();
         assertEquals(expected, actual);
     }
 
     @Test
     public void PatchPerson_ShouldUpdatePersonWithGivenId() throws Exception {
         Person input = new Person(null, "heinz", "heinz@test", 108, false, null);
-        Person expected = new Person(200L, "heinz", "heinz@test", 108, false, null);
+        String expected = new Person(200L, "heinz", "heinz@test", 108, false, null).toString();
 
         MockHttpServletResponse response = mockMvc.perform(patch("/person/200")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -112,7 +112,7 @@ class SpringmongoApplicationTests {
                 .content(mapper.writeValueAsString(input)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-        Person actual = mapper.readValue(response.getContentAsString(), Person.class);
+        String actual = mapper.readValue(response.getContentAsString(), Person.class).toString();
 
         assertEquals(expected, actual);
     }
@@ -120,7 +120,7 @@ class SpringmongoApplicationTests {
     @Test
     public void PutPerson_ShouldCreatePersonWithGivenId() throws Exception {
         Person input = new Person(null, "heinz", "heinz@test", 108, false, null);
-        Person expected = new Person(500L, "heinz", "heinz@test", 108, false, null);
+        String expected = new Person(500L, "heinz", "heinz@test", 108, false, null).toString();
 
         MockHttpServletResponse response = mockMvc.perform(put("/person/500")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -129,7 +129,7 @@ class SpringmongoApplicationTests {
                 .content(mapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse();
-        Person actual = mapper.readValue(response.getContentAsString(), Person.class);
+        String actual = mapper.readValue(response.getContentAsString(), Person.class).toString();
 
         assertEquals(expected, actual);
     }
