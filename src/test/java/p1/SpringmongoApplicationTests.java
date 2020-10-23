@@ -2,23 +2,50 @@ package p1;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.client.gridfs.GridFSBucket;
+import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.gridfs.model.GridFSFile;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.gridfs.GridFsCriteria;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.http.*;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import p1.entity.Address;
 import p1.entity.Person;
 import p1.repository.PersonRepository;
 
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -35,26 +62,57 @@ class SpringmongoApplicationTests {
 
     @Autowired
     PersonRepository personRepository;
+    @Autowired
+    GridFsTemplate gridFsTemplate;
 
     Person p1;
     Person p2;
+    File file;
+    MultipartFile multipartFile;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws IOException {
         p1 = new Person(100L, "mario", "nintendo@test", 56, false, new Address("11", "kamitoba", "kyoto", "jp") );
         p2 = new Person(200L, "oreo", "kraft@test", 108, false, null);
         personRepository.save(p1);
         personRepository.save(p2);
+        try {
+            file = new File("resources/test/test.txt");
+            if (!file.exists()) {
+                File dir = new File(file.getParent());
+                dir.mkdirs();
+                file.createNewFile();
+            }
+            FileOutputStream outStream = new FileOutputStream(file);
+            String sourceString = "testString";
+            byte[] sourceByte = sourceString.getBytes();
+            outStream.write(sourceByte);
+            outStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        FileInputStream fileInputStream = new FileInputStream(file);
+        multipartFile = new MockMultipartFile("copy"+file.getName(),file.getName(), "text/plain",fileInputStream);
+        DBObject metaData = new BasicDBObject();
+        metaData.put("contentType", multipartFile.getContentType());
+        gridFsTemplate.store(multipartFile.getInputStream(), "test.txt", multipartFile.getContentType(), metaData);
+
     }
 
     @AfterEach
     public void cleanup() {
         personRepository.deleteById(100L);
         personRepository.deleteById(200L);
+        gridFsTemplate.delete(Query.query(GridFsCriteria.whereFilename().is("test.txt")));
     }
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    public void applicationStarts() {
+        SpringmongoApplication.main(new String[] {});
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,6 +199,61 @@ class SpringmongoApplicationTests {
                 .andExpect(status().isNoContent())
                 .andReturn();
         assertFalse(personRepository.existsById(100L));
+    }
+
+    @Test
+    public void list_returnsListOfFiles() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/files"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+
+        String list = response.getContentAsString();
+        String str[] = list.substring(1, list.length()-1).split(",");
+        List<String> actualResponse = Arrays.asList(str);
+
+        Boolean fileExist = false;
+        for (String temp : actualResponse) {
+              if(temp.substring(1, temp.length()-1).equals("test.txt")) fileExist = true;
+
+        }
+        assertEquals(true, fileExist);
+    }
+
+    @Test
+    public void get_ShouldReturnPersonWithGivenNme() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/files/test.txt"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+        byte[] actual = response.getContentAsByteArray();
+        byte[] expected = Files.readAllBytes(Path.of("resources/test/test.txt"));
+
+        Boolean filesAreSame = true;
+        if(actual.length != expected.length)filesAreSame = false;
+        for (int i = 0; i < actual.length; i++)if (actual[i] != expected[i])filesAreSame = false;
+
+        assertEquals(true, filesAreSame);
+    }
+
+    @Test
+    public void createOrUpdate_ShouldReturnFileWithGivenName() throws Exception {
+        byte[] byteFile = Files.readAllBytes(Path.of("resources/test/test.txt"));
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                "file",
+                "test.txt",
+                MediaType.TEXT_PLAIN_VALUE,
+                byteFile
+        );
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/files")
+                .file(mockMultipartFile))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    public void delete_ShouldDeleteFileWithGivenNme() throws Exception {
+        mockMvc.perform((RequestBuilder) delete("/files/test.txt"))
+                .andExpect(status().is(204))
+                .andReturn().getResponse();
     }
 
 }

@@ -132,12 +132,12 @@ public class FileControllerTest {
         Mockito.when(gridFsTemplate.store(multipartFile.getInputStream(), "test.txt", multipartFile.getContentType(), metaData)).thenReturn(null);
 
         //act
-        HttpEntity<byte[]> response = fileController.createOrUpdate(multipartFile);
+        HttpEntity<byte[]> response = fileController.create(multipartFile);
 
         //assert
 //        Mockito.verify(gridFsTemplate).store(ArgumentMatchers.any(java.io.InputStream.class),
 //                ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.any(org.bson.Document.class));
-       assertEquals(new HttpEntity<>("<script>window.location = '/';</script>".getBytes()), response);
+       assertEquals(new ResponseEntity<>("<script>window.location = '/';</script>".getBytes(), HttpStatus.CREATED), response);
 
     }
 
@@ -168,12 +168,12 @@ public class FileControllerTest {
         Mockito.when(gridFsTemplate.store(multipartFile.getInputStream(), "test.txt", multipartFile.getContentType(), metaData)).thenReturn(null);
 
         //act
-        HttpEntity<byte[]> response = fileController.createOrUpdate(multipartFile);
+        HttpEntity<byte[]> response = fileController.create(multipartFile);
 
         //assert
 //        Mockito.verify(gridFsTemplate).store(ArgumentMatchers.any(java.io.InputStream.class),
 //                ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.any(org.bson.Document.class));
-        assertEquals(new HttpEntity<>("<script>window.location = '/';</script>".getBytes()), response);
+        assertEquals(new ResponseEntity<>("<script>window.location = '/';</script>".getBytes(), HttpStatus.CREATED), response);
 
     }
 

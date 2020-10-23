@@ -45,7 +45,7 @@ public class FileController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public HttpEntity<byte[]> createOrUpdate(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<byte[]> create(@RequestParam("file") MultipartFile file) {
         String name = file.getOriginalFilename();
         try {
             Optional<GridFSFile> existing = maybeLoadFile(name);
@@ -56,7 +56,7 @@ public class FileController {
             metaData.put("contentType", file.getContentType());
             gridFsTemplate.store(file.getInputStream(), name, file.getContentType(), metaData);
             String resp = "<script>window.location = '/';</script>";
-            return new HttpEntity<>(resp.getBytes());
+            return new ResponseEntity<>(resp.getBytes(), HttpStatus.CREATED);
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
