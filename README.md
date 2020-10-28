@@ -1,6 +1,6 @@
 ### Springmongo practice project
 
-### Skillset: web, rest, mongodb, gridfs, lombok, sonarqube, test.
+### Skillset: web, rest, mongodb, gridfs, lombok, sonarqube, test, swagger.
 
 ### Endpoint:
 
@@ -27,5 +27,7 @@
  5. Check [http://localhost:9000](http://localhost:9000)<br>
  
  
+ ### Swagger homepage
+ [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)<br>
  
  
