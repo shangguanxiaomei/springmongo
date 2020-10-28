@@ -1,5 +1,6 @@
 package p1.controller;
 
+import io.swagger.annotations.Api;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -7,6 +8,7 @@ import p1.entity.Person;
 import p1.exception.PersonNotFoundException;
 import p1.service.PersonCrud;
 
+import java.io.*;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.*;
@@ -22,12 +24,13 @@ public class PersonController {
         this.personCrud= personCrud;
     }
 
-    @RequestMapping()
-    public String test() {
-        return "hello world";
-    }
+    @RequestMapping(method = RequestMethod.GET)
+    public String test() {return "Hello World";}
 
-    @RequestMapping("/list")
+    @RequestMapping(value = "/error", method = RequestMethod.GET)
+    public String error() {return "This is an error page";}
+
+    @RequestMapping(value = "/list", method = RequestMethod.GET)
     public ResponseEntity<List<Person>> getAllPersons() {
         return new ResponseEntity<>(personCrud.getAll(), OK);
     }
