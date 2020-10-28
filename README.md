@@ -12,3 +12,20 @@
  
   * [http://localhost:8080/personapi/*](http://localhost:8080/personapi)<br>
  -- Person data rest url
+ 
+ 
+ ### Test procedure:
+ 
+ 1. Start sonarqube server.
+ 
+ 2. Run gradle clean.
+ 
+ 3. Run gradle test jacocotestreport.
+ 
+ 4. Run gradle sonarqube.
+ 
+ 5. Check * [http://localhost:9000*](http://localhost:9000)<br>
+ 
+ 
+ 
+ 
