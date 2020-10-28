@@ -24,7 +24,7 @@
  
  4. Run gradle sonarqube.
  
- 5. Check * [http://localhost:9000*](http://localhost:9000)<br>
+ 5. Check [http://localhost:9000](http://localhost:9000)<br>
  
  
  
