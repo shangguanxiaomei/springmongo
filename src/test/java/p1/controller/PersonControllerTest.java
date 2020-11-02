@@ -33,15 +33,10 @@ public class PersonControllerTest {
         );
     }
 
-    @RequestMapping()
-    public String test() {
-        return "hello world";
-    }
-
     @Test
     public void testOfTest(){
         String response= personController.test();
-        assertEquals("hello world", response);
+        assertEquals("Hello World", response);
     }
 
     @Test
